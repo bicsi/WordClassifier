@@ -1,20 +1,27 @@
+// Declaration of BloomClassifier
+
 #ifndef BLOOM_H_
 #define BLOOM_H_
 
-#include <fstream>
-#include "../util/debug.h"
+#include <vector>
 
 class BloomClassifier {
-	vector<vector<int>> bloomFilter;
-	vector<string> words;
-	vector<int> bases;
+	std::vector<std::vector<int>> bloomFilter;
+	std::vector<std::string> words;
+	std::vector<int> bases;
 	int prime = 0;
 	int lowBound = 1;
 
 
 private:
 	// HashFun hashed a word modulo a prime; base is just a parameter here
-	int HashFun(int h, string word, int base, int prime);
+	int HashFun(int h, std::string word, int base, int prime);
+
+	// AddWords adds words from the vector to the bloom filter
+	void AddWords();
+
+	// Prune prunes bloom filter to be more sparse
+	void PruneFilter();
 
 public:
 	// LoadConfig loads saved data from a file
@@ -28,10 +35,10 @@ public:
 
 	// Train makes a filter from a prime number, and some bases
 	// lowBound here is just a parameter
-	void Train(int prime, vector<int> bases, int lowBound = 1);
+	void Train(int prime, std::vector<int> bases, int lowBound = 1);
 
 	// Predict tests a word and returns the prediction
-	bool Predict(string word);
+	bool Predict(std::string word);
 
 };
 
