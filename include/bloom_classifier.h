@@ -4,6 +4,7 @@
 #define BLOOM_H_
 
 #include <vector>
+#include <string>
 
 class BloomClassifier {
 	std::vector<std::vector<int>> bloomFilter;
@@ -35,10 +36,13 @@ public:
 
 	// Train makes a filter from a prime number, and some bases
 	// lowBound here is just a parameter
-	void Train(int prime, std::vector<int> bases, int lowBound = 1);
+	void Train(int prime, std::vector<int> bases, int lowBound);
 
 	// Predict tests a word and returns the prediction
 	bool Predict(std::string word);
+
+	// Asserts that the two BloomClassifiers are equal
+	void AssertEqual(const BloomClassifier &oth);
 
 };
 

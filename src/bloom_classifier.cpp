@@ -3,10 +3,15 @@
 #include "../include/bloom_classifier.h"
 #include "../util/debug.h"
 
+#include <fstream>
+#include <queue>
+#include <cassert>
+#include <algorithm>
+
 using namespace std;
 
 int BloomClassifier::HashFun(int old_h, string word, int base, int prime) {
-	h = 0;
+	int h = 0;
 	for(auto c : word)
 		h = (1LL * h * base + c) % prime;
 	return h;
@@ -17,7 +22,43 @@ void BloomClassifier::LoadConfig(const char* FILENAME) {
 
 	ifstream in(FILENAME);
 
-	debug("Loaded!\n");
+	int countBases, base;
+	in >> prime >> countBases;
+
+	bases.clear();
+	while(countBases--) {
+		in >> base;
+		bases.push_back(base);
+	}
+
+	bloomFilter.clear();
+	bloomFilter.resize(prime + 8);
+
+	for(int byte = 0; byte < prime; byte += 8) {
+		char mask;
+		in >> mask;
+
+		for(int bit = 0; bit < 8; ++bit)
+			if(mask & (1 << bit))
+				bloomFilter[byte + bit].push_back(1);
+	}
+
+	bloomFilter.resize(prime);
+
+	in.close();
+
+	debug("Loaded!\n\n");
+}
+
+void BloomClassifier::AssertEqual(const BloomClassifier &oth) {
+	assert(prime == oth.prime);
+	assert(bases == oth.bases);
+
+	for(int i = 0; i < prime; ++i)
+		assert((bloomFilter[i].size() == 0) == 
+				(oth.bloomFilter[i].size() == 0));
+
+	debug("The two classifiers are identical!\n");
 }
 
 void BloomClassifier::SaveConfig(const char* FILENAME) {
@@ -31,20 +72,19 @@ void BloomClassifier::SaveConfig(const char* FILENAME) {
    	for(auto base : bases) 
    		out << base << ' ';
 
-	for(int i = 0; i < prime; ++i) {
-		if(bloomFilter[i].size())
-			x |= (1 << (i % 8));
-		
-		if(i % 8 == 7) {
-			out << x;
-			x = 0;
-		}
+   	bloomFilter.resize(prime + 8);
+	for(int byte = 0; byte < prime; byte += 8) {
+		char mask = 0;
+		for(int bit = 0; bit < 8; ++bit)
+			if(bloomFilter[byte + bit].size())
+				mask |= (1 << bit);
+		out << mask;
 	}
-	out << x;
+	bloomFilter.resize(prime);
 
 	out.close();
 
-	debug("Saved!\n");
+	debug("Saved!\n\n");
 }
 
 void BloomClassifier::LoadWordList(const char* FILENAME) {
@@ -52,15 +92,16 @@ void BloomClassifier::LoadWordList(const char* FILENAME) {
 
 	ifstream in(FILENAME);
 
+	string word;
 	while(in >> word) {
 		words.push_back(word);
 	}
 
-	debug("Loaded!\n");
+	debug("Loaded %d words!\n\n", (int)words.size());
 }
 
 void BloomClassifier::AddWords() {
-	debug("Processing words...\n");
+	debug("Processing words...\n\n");
 
 	// Resize bloom filter
 	bloomFilter.resize(words.size());
@@ -76,14 +117,16 @@ void BloomClassifier::AddWords() {
 }
 
 void BloomClassifier::PruneFilter() {
-	debug("Pruning...\n");
-
+	debug("Pruning...\n\n");
 
 	// Use a min-heap sorted by sizes in filter
-	std::priority_queue<pair<int, int>> Q;
+	priority_queue<pair<int, int>> Q;
 	for(int i = 0; i < prime; ++i)
-		if(bloomFilter[i].size() <= lowBound)
+		if((int)bloomFilter[i].size() <= lowBound)
 			Q.emplace(-bloomFilter[i].size(), -i);
+
+	// Assign deleted array for not duplicating deletions
+	vector<bool> deleted(bloomFilter.size(), 0);
 
 	// Prune
 	int remCount = 0;
@@ -99,26 +142,25 @@ void BloomClassifier::PruneFilter() {
 
 			// Added upper bound check
 			if(remCount >= 210000) {
-				debug("Removed too many words!\n");
-				bloomFilter.clear();
+				debug("Removed too many words!\n\n");
 				return;
 			}
 			
 			// Prune all words that hash to top
 			int h = 0;
 			for(auto base : bases) {
-				h = hash_fun(h, words[now], base, prime);
+				h = HashFun(h, words[now], base, prime);
 				auto it = find(bloomFilter[h].begin(), bloomFilter[h].end(), now);
 				assert(it != bloomFilter[h].end());
 
 				bloomFilter[h].erase(it);
-				if(bloomFilter[h].size() <= lowBound)
+				if((int)bloomFilter[h].size() <= lowBound)
 					Q.emplace(-bloomFilter[h].size(), -h);
 			}
 		}
 	}
 
-	debug("Removed %d items!\n", remCount);
+	debug("Removed %d items!\n\n", remCount);
 }
 
 void BloomClassifier::Train(int prime, vector<int> bases, int lowBound = 1) {
@@ -136,9 +178,9 @@ void BloomClassifier::Train(int prime, vector<int> bases, int lowBound = 1) {
 
 
 	AddWords();
-	Prune();
+	PruneFilter();
 
-	debug("Done training!\n");
+	// Done!
 }
 
 bool BloomClassifier::Predict(string word) {

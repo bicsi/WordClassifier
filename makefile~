@@ -1,0 +1,15 @@
+CFLAGS=-std=c++11 -Wall -O2
+
+all: wclass
+
+wclass: main.o bloom.o
+	g++ main.o bloom.o -o wclass
+
+main.o: src/main.cpp
+	g++ $(CFLAGS) src/main.cpp
+
+bloom.o: src/bloom_classifier.cpp include/bloom_classifier.h
+	g++ $(CFLAGS) src/bloom_classifier.cpp
+
+clean:
+	rm *o wclass
