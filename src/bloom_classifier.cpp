@@ -18,7 +18,7 @@ int BloomClassifier::HashFun(int old_h, string word, int base, int prime) const 
 }
 
 void BloomClassifier::LoadConfig(const char* FILENAME) {
-	debug("Loading from file...\n");
+	debug("[BLOOM] Loading from file...\n");
 
 	ifstream in(FILENAME);
 
@@ -47,7 +47,7 @@ void BloomClassifier::LoadConfig(const char* FILENAME) {
 
 	in.close();
 
-	debug("Loaded!\n\n");
+	debug("[BLOOM] Loaded!\n\n");
 }
 
 void BloomClassifier::AssertEqual(const BloomClassifier &oth) {
@@ -58,11 +58,11 @@ void BloomClassifier::AssertEqual(const BloomClassifier &oth) {
 		assert((bloomFilter[i].size() == 0) == 
 				(oth.bloomFilter[i].size() == 0));
 
-	debug("The two classifiers are identical!\n");
+	debug("[BLOOM] The two classifiers are identical!\n");
 }
 
 void BloomClassifier::SaveConfig(const char* FILENAME) {
-	debug("Saving to file...\n");
+	debug("[BLOOM] Saving to file...\n");
 	
 	ofstream out(FILENAME);
 
@@ -82,11 +82,11 @@ void BloomClassifier::SaveConfig(const char* FILENAME) {
 
 	out.close();
 
-	debug("Saved!\n\n");
+	debug("[BLOOM] Saved!\n\n");
 }
 
 void BloomClassifier::LoadWordList(const char* FILENAME) {
-	debug("Loading word list...\n");
+	debug("[BLOOM] Loading word list...\n");
 
 	ifstream in(FILENAME);
 
@@ -95,11 +95,11 @@ void BloomClassifier::LoadWordList(const char* FILENAME) {
 		words.push_back(word);
 	}
 
-	debug("Loaded %d words!\n\n", (int)words.size());
+	debug("[BLOOM] Loaded %d words!\n\n", (int)words.size());
 }
 
 void BloomClassifier::AddWords() {
-	debug("Processing words...\n\n");
+	debug("[BLOOM] Processing words...\n\n");
 
 	// Resize bloom filter
 	bloomFilter.clear();
@@ -116,7 +116,7 @@ void BloomClassifier::AddWords() {
 }
 
 void BloomClassifier::PruneFilter() {
-	debug("Pruning...\n\n");
+	debug("[BLOOM] Pruning...\n\n");
 
 	// Use a min-heap sorted by sizes in filter
 	priority_queue<pair<int, int>> Q;
@@ -141,7 +141,7 @@ void BloomClassifier::PruneFilter() {
 
 			// Added upper bound check
 			if(remCount >= 210000) {
-				debug("Removed too many words!\n\n");
+				debug("[BLOOM] Removed too many words!\n\n");
 				return;
 			}
 			
@@ -159,7 +159,7 @@ void BloomClassifier::PruneFilter() {
 		}
 	}
 
-	debug("Removed %d items!\n\n", remCount);
+	debug("[BLOOM] Removed %d items!\n\n", remCount);
 }
 
 void BloomClassifier::Train(int prime, vector<int> bases, int lowBound = 1) {
@@ -169,8 +169,8 @@ void BloomClassifier::Train(int prime, vector<int> bases, int lowBound = 1) {
 	this->bases = bases;
 	this->lowBound = lowBound;
 
-	debug("Current prime: %d\n", prime);
-	debug("Current bases: ");
+	debug("[BLOOM] Current prime: %d\n", prime);
+	debug("[BLOOM] Current bases: ");
 	for(auto base : bases)
 		debug("%d ", base);
 	debug("\n");

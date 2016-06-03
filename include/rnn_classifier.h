@@ -13,7 +13,7 @@ class RNNClassifier : public Model {
 	int vocabSize;
 	float treshold;
 
-	std::map<int, int> charToInt;
+	std::map<char, int> charToInt;
 
 	arma::mat WXH, WHH, WHY;
 	arma::vec bh, by;
