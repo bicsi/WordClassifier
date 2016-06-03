@@ -5,8 +5,9 @@
 
 #include <vector>
 #include <string>
+#include "model.h"
 
-class BloomClassifier {
+class BloomClassifier : public Model {
 	std::vector<std::vector<int>> bloomFilter;
 	std::vector<std::string> words;
 	std::vector<int> bases;
@@ -16,7 +17,7 @@ class BloomClassifier {
 
 private:
 	// HashFun hashed a word modulo a prime; base is just a parameter here
-	int HashFun(int h, std::string word, int base, int prime);
+	int HashFun(int h, std::string word, int base, int prime) const;
 
 	// AddWords adds words from the vector to the bloom filter
 	void AddWords();
@@ -39,7 +40,7 @@ public:
 	void Train(int prime, std::vector<int> bases, int lowBound);
 
 	// Predict tests a word and returns the prediction
-	bool Predict(std::string word);
+	bool Predict(std::string word) const;
 
 	// Asserts that the two BloomClassifiers are equal
 	void AssertEqual(const BloomClassifier &oth);

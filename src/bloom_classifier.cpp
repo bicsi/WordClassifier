@@ -10,7 +10,7 @@
 
 using namespace std;
 
-int BloomClassifier::HashFun(int old_h, string word, int base, int prime) {
+int BloomClassifier::HashFun(int old_h, string word, int base, int prime) const {
 	int h = 0;
 	for(auto c : word)
 		h = (1LL * h * base + c) % prime;
@@ -104,10 +104,11 @@ void BloomClassifier::AddWords() {
 	debug("Processing words...\n\n");
 
 	// Resize bloom filter
-	bloomFilter.resize(words.size());
+	bloomFilter.clear();
+	bloomFilter.resize(prime);
 
 	// Add each word with each hash function
-	for(int i = 0; i < words.size(); ++i) {
+	for(size_t i = 0; i < words.size(); ++i) {
 		int h = 0;
 		for(auto base : bases) {
 			h = HashFun(h, words[i], base, prime);
@@ -126,7 +127,7 @@ void BloomClassifier::PruneFilter() {
 			Q.emplace(-bloomFilter[i].size(), -i);
 
 	// Assign deleted array for not duplicating deletions
-	vector<bool> deleted(bloomFilter.size(), 0);
+	vector<bool> deleted(words.size(), 0);
 
 	// Prune
 	int remCount = 0;
@@ -183,7 +184,7 @@ void BloomClassifier::Train(int prime, vector<int> bases, int lowBound = 1) {
 	// Done!
 }
 
-bool BloomClassifier::Predict(string word) {
+bool BloomClassifier::Predict(string word) const {
 	int h = 0;
 	for(auto base : bases) {
 		h = HashFun(h, word, base, prime);

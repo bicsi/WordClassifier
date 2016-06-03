@@ -1,11 +1,23 @@
 CFLAGS=-std=c++11 -Wall -O2 -c
 
-all: bloom_train
+all: bloom_train rnn_test
 
-bloom_train: train.o bloom.o prime.o
-	g++ train.o bloom.o prime.o -o bloom_train
+rnn_test: rnn.o rnn_test.o
+	g++ rnn.o rnn_test.o -o rnn_test -larmadillo
 
-train.o: src/main.cpp
+bloom_train: train.o bloom.o prime.o tester.o
+	g++ train.o bloom.o prime.o tester.o -o bloom_train
+
+rnn.o: src/rnn_classifier.cpp include/rnn_classifier.h
+	g++ $(CFLAGS) -larmadillo src/rnn_classifier.cpp -o rnn.o
+
+rnn_test.o: src/rnn_test.cpp
+	g++ $(CFLAGS) src/rnn_test.cpp -o rnn_test.o
+
+tester.o: src/model_tester.cpp include/model_tester.h
+	g++ $(CFLAGS) src/model_tester.cpp -o tester.o
+
+train.o: src/bloom_train.cpp
 	g++ $(CFLAGS) src/bloom_train.cpp -o train.o
 
 bloom.o: src/bloom_classifier.cpp include/bloom_classifier.h
