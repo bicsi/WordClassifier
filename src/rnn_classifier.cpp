@@ -1,32 +1,57 @@
 #include "../include/rnn_classifier.h"
+#include "../util/debug.h"
+
 #include <armadillo>
 #include <string>
+#include <fstream>
 
 using namespace arma;
 using namespace std;
 
-const float RNNClassifier::kLearningRate = 1.0e-1;
-const int RNNClassifier::kHiddenSize = 25;
 
+void RNNClassifier::ReadMatrix(mat &M, int n, int m) {
+	M.zeros(n, m);
+	for(int i = 0; i < n; ++i)
+		for(int j = 0; j < m; ++j)
+			in >> M(i, j);
+}
+
+void RNNClassifier::ReadVector(vec &v, int n) {
+	v.zeros(n);
+	for(int i = 0; i < n; ++i)
+		in >> v(i);
+}
 
 void RNNClassifier::LoadData(const char *FILENAME) {
+	debug("[RNN] Loading data...\n");
+	// Open stream
+	in = ifstream(FILENAME);
 
-	int ind = 0;
-	for(char c = 'a'; c <= 'z'; ++c)
-		charToInt[c] = ind++;
-	vocabSize = charToInt.size();
+	// Read parameters and build charToInt[]
+	in >> hiddenSize >> vocabSize;
+	for(int i = 0; i < vocabSize; ++i) {
+		char ch;
+		in >> ch;
+		charToInt[ch] = i;
+	}
 
-	WXH = randu<mat>(kHiddenSize, vocabSize);
-	WHH = randu<mat>(kHiddenSize, kHiddenSize);
-	WHY = randu<mat>(vocabSize, kHiddenSize);
-	bh = randu<vec>(kHiddenSize);
-	by = randu<vec>(vocabSize);
+	// Read matrices
+	ReadMatrix(WXH, hiddenSize, vocabSize);
+	ReadMatrix(WHH, hiddenSize, hiddenSize);
+	ReadMatrix(WHY, vocabSize, hiddenSize);
+	ReadVector(bh, hiddenSize);
+	ReadVector(by, vocabSize);
+
+	// Close stream
+	in.close();
+	debug("[RNN] Loaded!\n");
 }
 
 float RNNClassifier::ComputeLoss(string word) const {
 	vec hs, ys, xs, ps;
 
-	hs.zeros(kHiddenSize);
+	// Initialize memory and loss
+	hs.zeros(hiddenSize);
 	float loss = 0;
 
 	for(size_t i = 0; i < word.length() - 1; ++i) {
@@ -42,17 +67,15 @@ float RNNClassifier::ComputeLoss(string word) const {
 		// Update class probs (unnormalized)
 		ys = WHY * hs;
 		// Update probabilities
-		ps = exp(ys);
-		ps /= sum(ps);
+		ps = exp(ys); ps /= sum(ps);
 
 		// Update loss
 		loss -= log(ps[target]);
 	}
 
-	cerr << loss << '\n';
 	return loss;
 }
 
 bool RNNClassifier::Predict(string word) const {
-	return ComputeLoss(word) <= 5;
+	return ComputeLoss(word) / (word.length() - 1) <= treshold;
 }

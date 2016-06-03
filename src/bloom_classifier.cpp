@@ -66,8 +66,6 @@ void BloomClassifier::SaveConfig(const char* FILENAME) {
 	
 	ofstream out(FILENAME);
 
-	char x = 0;
-
 	out << prime << ' ' << bases.size() << ' ';
    	for(auto base : bases) 
    		out << base << ' ';

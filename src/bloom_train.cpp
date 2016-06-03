@@ -24,7 +24,9 @@ int main() {
 	// Load test cases from res folder
 	tester.LoadTestData("res/words-test.txt");
 
-	for(int i = 0; i < 10; ++i) {
+	double bestAccuracy = 0.0;
+
+	for(int i = 0; ; ++i) {
 		debug("At iteration #%d\n", i);
 		debug("----------------------\n\n");
 
@@ -41,6 +43,11 @@ int main() {
 	
 		// Test the model on test cases
 		tester.TestModel(bloom);
+
+		if(tester.accuracy > bestAccuracy) {
+			bestAccuracy = tester.accuracy;
+			bloom.SaveConfig("res/bloom_res");
+		}
 
 		// Dump results to stdout
 		tester.DumpResults(cout);

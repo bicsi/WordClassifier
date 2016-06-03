@@ -3,7 +3,7 @@ CFLAGS=-std=c++11 -Wall -O2 -c
 all: bloom_train rnn_test
 
 rnn_test: rnn.o rnn_test.o
-	g++ rnn.o rnn_test.o -o rnn_test
+	g++ rnn.o rnn_test.o -o rnn_test -larmadillo
 
 bloom_train: train.o bloom.o prime.o tester.o
 	g++ train.o bloom.o prime.o tester.o -o bloom_train

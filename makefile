@@ -2,8 +2,8 @@ CFLAGS=-std=c++11 -Wall -O2 -c
 
 all: bloom_train rnn_test
 
-rnn_test: rnn.o rnn_test.o
-	g++ rnn.o rnn_test.o -o rnn_test -larmadillo
+rnn_test: rnn.o rnn_test.o tester.o
+	g++ rnn.o rnn_test.o tester.o -o rnn_test -larmadillo
 
 bloom_train: train.o bloom.o prime.o tester.o
 	g++ train.o bloom.o prime.o tester.o -o bloom_train
@@ -27,4 +27,4 @@ prime.o: src/random_gen.cpp include/random_gen.h
 	g++ $(CFLAGS) src/random_gen.cpp -o prime.o
 
 clean:
-	rm *o bloom_train
+	rm *o bloom_train rnn_test
